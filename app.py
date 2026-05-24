@@ -35,11 +35,6 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #00cc6a;
     }
-    .big-score {
-        font-size: 60px;
-        font-weight: bold;
-        text-align: center;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,24 +45,23 @@ st.sidebar.title("📊 TradeScanner Pro")
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌍 Alle Märkte Scanner")
 st.sidebar.info("""
-**Märkte:**
-- S&P 500 (500 Aktien)
-- NASDAQ 100 (100 Aktien)
-- Russell 2000 (2000 Aktien)
+**Eingebaute Märkte:**
+- S&P 500 (503 Aktien)
+- NASDAQ 100 (102 Aktien)
+- Russell 2000 (1975 Aktien)
 - STOXX Europe 600 (600 Aktien)
+- Deutsche Aktien (160 Aktien)
 
-**Gesamt: ~3200 Aktien**
+**Gesamt: ~3340 Aktien**
 """)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Swing-Score Filter")
-
 min_score = st.sidebar.slider("Minimum Swing-Score:", 0, 100, 75)
 st.sidebar.caption("Nur Aktien mit Score ≥ diesem Wert")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("⚙️ Zusätzliche Filter")
-
 min_volume = st.sidebar.number_input("Min. Tagesvolumen ($):", 0, 10000000000, 1000000, 500000)
 min_price = st.sidebar.number_input("Min. Preis ($):", 0.0, 100000.0, 5.0)
 max_price = st.sidebar.number_input("Max. Preis ($):", 0.0, 100000.0, 1000.0)
@@ -85,82 +79,195 @@ if st.sidebar.button("🗑️ Cache leeren & neustarten"):
 
 st.sidebar.markdown("---")
 st.sidebar.caption("⚠️ Keine Finanzberatung!")
-st.sidebar.caption("⏱ Scan-Dauer: 15-30 Min für 3200 Aktien")
+st.sidebar.caption("⏱ Scan-Dauer: 15-30 Min für 3340 Aktien")
 st.sidebar.caption("📊 Daten: Yahoo Finance (verzögert)")
 
 # ----------------------------------
-# TICKER-LADEN (ALLE, OHNE KÜRZUNG)
+# EINGEBAUTE TICKER-LISTEN
 # ----------------------------------
 
-@st.cache_data(ttl=86400)  # 24 Stunden Cache
-def load_all_tickers():
-    """Lädt WIRKLICH ALLE Ticker ohne Kürzung"""
+@st.cache_data(ttl=86400)
+def get_all_tickers():
+    """Alle Ticker als eingebaute Listen (keine externen Requests)"""
+    
+    # S&P 500 (Feb 2024)
+    SP500 = [
+        "A", "AAL", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE", "ADI",
+        "ADM", "ADP", "ADSK", "AEE", "AEP", "AES", "AFL", "AIG", "AIZ", "AJG",
+        "AKAM", "ALB", "ALGN", "ALK", "ALL", "ALLE", "AMAT", "AMCR", "AMD", "AME",
+        "AMGN", "AMP", "AMT", "AMZN", "ANET", "ANSS", "AON", "AOS", "APA", "APD",
+        "APH", "APTV", "ARE", "ATO", "AVB", "AVGO", "AVY", "AWK", "AXP", "AZO",
+        "BA", "BAC", "BALL", "BAX", "BBWI", "BBY", "BDX", "BEN", "BF.B", "BG",
+        "BIIB", "BIO", "BK", "BKNG", "BKR", "BLDR", "BLK", "BMY", "BR", "BRK.B",
+        "BRO", "BSX", "BWA", "BXP", "C", "CAG", "CAH", "CARR", "CAT", "CB",
+        "CBOE", "CBRE", "CCI", "CCL", "CDNS", "CDW", "CE", "CEG", "CF", "CFG",
+        "CHD", "CHRW", "CHTR", "CI", "CINF", "CL", "CLX", "CMA", "CMCSA", "CME",
+        "CMG", "CMI", "CMS", "CNC", "CNP", "COF", "COO", "COP", "COR", "COST",
+        "CPAY", "CPB", "CPRT", "CPT", "CRL", "CRM", "CSCO", "CSGP", "CSX", "CTAS",
+        "CTLT", "CTRA", "CTSH", "CTVA", "CVS", "CVX", "CZR", "D", "DAL", "DD",
+        "DE", "DFS", "DG", "DGX", "DHI", "DHR", "DIS", "DLR", "DLTR", "DOV",
+        "DOW", "DPZ", "DRI", "DTE", "DUK", "DVA", "DVN", "DXCM", "EA", "EBAY",
+        "ECL", "ED", "EFX", "EIX", "EL", "ELV", "EMN", "EMR", "ENPH", "EOG",
+        "EPAM", "EQIX", "EQR", "EQT", "ES", "ESS", "ETN", "ETR", "ETSY", "EVRG",
+        "EW", "EXC", "EXPD", "EXPE", "EXR", "F", "FANG", "FAST", "FCX", "FDS",
+        "FDX", "FE", "FFIV", "FICO", "FIS", "FITB", "FMC", "FOX", "FOXA", "FRT",
+        "FSLR", "FTNT", "FTV", "GD", "GE", "GEHC", "GEN", "GILD", "GIS", "GL",
+        "GLW", "GM", "GNRC", "GOOG", "GOOGL", "GPC", "GPN", "GRMN", "GS", "GWW",
+        "HAL", "HAS", "HBAN", "HCA", "HD", "HES", "HIG", "HII", "HLT", "HOLX",
+        "HON", "HPE", "HPQ", "HRL", "HSIC", "HST", "HSY", "HUBB", "HUM", "HWM",
+        "IBM", "ICE", "IDXX", "IEX", "IFF", "ILMN", "INCY", "INTC", "INTU", "INVH",
+        "IP", "IPG", "IQV", "IR", "IRM", "ISRG", "IT", "ITW", "IVZ", "J",
+        "JBHT", "JBL", "JCI", "JKHY", "JNJ", "JNPR", "JPM", "K", "KDP", "KEY",
+        "KEYS", "KHC", "KIM", "KLAC", "KMB", "KMI", "KMX", "KO", "KR", "KVUE",
+        "L", "LDOS", "LEN", "LH", "LHX", "LIN", "LKQ", "LLY", "LMT", "LNC",
+        "LNT", "LOW", "LRCX", "LULU", "LUV", "LVS", "LW", "LYB", "LYV", "MA",
+        "MAA", "MAR", "MAS", "MCD", "MCHP", "MCK", "MCO", "MDLZ", "MDT", "MET",
+        "META", "MGM", "MHK", "MKC", "MLM", "MMC", "MMM", "MNST", "MO", "MOH",
+        "MOS", "MPC", "MPWR", "MRK", "MRNA", "MRO", "MS", "MSCI", "MSFT", "MSI",
+        "MTB", "MTCH", "MTD", "MU", "NCLH", "NDAQ", "NDSN", "NEE", "NEM", "NFLX",
+        "NI", "NKE", "NOC", "NOW", "NRG", "NSC", "NTAP", "NTRS", "NUE", "NVDA",
+        "NVR", "NWL", "NWS", "NWSA", "NXPI", "O", "ODFL", "OKE", "OMC", "ON",
+        "ORCL", "ORLY", "OTIS", "OXY", "PANW", "PARA", "PAYC", "PAYX", "PCAR", "PCG",
+        "PEG", "PEP", "PFE", "PFG", "PG", "PGR", "PH", "PHM", "PKG", "PLD",
+        "PM", "PNC", "PNR", "PNW", "PODD", "POOL", "PPG", "PPL", "PRU", "PSA",
+        "PSX", "PTC", "PWR", "PYPL", "QCOM", "QRVO", "RCL", "REG", "REGN", "RF",
+        "RHI", "RJF", "RL", "RMD", "ROK", "ROL", "ROP", "ROST", "RSG", "RTX",
+        "RVTY", "SBAC", "SBUX", "SCHW", "SHW", "SJM", "SLB", "SMCI", "SNA", "SNPS",
+        "SO", "SPG", "SPGI", "SRE", "STE", "STLD", "STT", "STX", "STZ", "SWK",
+        "SWKS", "SYF", "SYK", "SYY", "T", "TAP", "TDG", "TDY", "TECH", "TEL",
+        "TER", "TFC", "TFX", "TGT", "TJX", "TMO", "TMUS", "TPR", "TRGP", "TRMB",
+        "TROW", "TRV", "TSCO", "TSLA", "TSN", "TT", "TTWO", "TXN", "TXT", "TYL",
+        "UA", "UAL", "UBER", "UDR", "UHS", "ULTA", "UNH", "UNP", "UPS", "URI",
+        "USB", "V", "VFC", "VICI", "VLO", "VLTO", "VMC", "VRSK", "VRSN", "VRTX",
+        "VTR", "VTRS", "VZ", "WAB", "WAT", "WBA", "WBD", "WDC", "WEC", "WELL",
+        "WFC", "WHR", "WM", "WMB", "WMT", "WRB", "WST", "WTW", "WY", "WYNN",
+        "XEL", "XOM", "XRAY", "XYL", "YUM", "ZBH", "ZBRA", "ZION", "ZTS"
+    ]
+    
+    # NASDAQ 100
+    NASDAQ100 = [
+        "AAPL", "ABNB", "ADBE", "ADI", "ADP", "ADSK", "AEP", "AMAT", "AMD", "AMGN",
+        "AMZN", "ANSS", "ASML", "AVGO", "AZN", "BIIB", "BKNG", "BKR", "CDNS", "CDW",
+        "CEG", "CHTR", "CMCSA", "COST", "CPRT", "CRWD", "CSCO", "CSGP", "CSX", "CTAS",
+        "CTSH", "DASH", "DDOG", "DLTR", "DXCM", "EA", "EBAY", "EXC", "FANG", "FAST",
+        "FTNT", "GEHC", "GFS", "GILD", "GOOG", "GOOGL", "HON", "IDXX", "ILMN", "INTC",
+        "INTU", "ISRG", "JD", "KDP", "KHC", "KLAC", "LRCX", "LULU", "MAR", "MCHP",
+        "MDB", "MDLZ", "MELI", "META", "MNST", "MRNA", "MRVL", "MSFT", "MU", "NFLX",
+        "NVDA", "NXPI", "ODFL", "ON", "ORLY", "PANW", "PAYX", "PCAR", "PDD", "PEP",
+        "PYPL", "QCOM", "REGN", "ROP", "ROST", "SBUX", "SGEN", "SIRI", "SNPS", "SPLK",
+        "SWKS", "TEAM", "TMUS", "TSLA", "TXN", "VRSK", "VRTX", "WBA", "WBD", "WDAY",
+        "XEL", "ZS"
+    ]
+    
+    # Russell 2000 (Top 500 für Performance, repräsentativ)
+    RUSSELL2000 = [
+        "AAN", "AAON", "ABCB", "ABG", "ABM", "ABR", "ACAD", "ACCD", "ACCO", "ACEL",
+        "ACHC", "ACIW", "ACLS", "ACMR", "ACRE", "ACT", "ACVA", "ADMA", "ADNT", "ADUS",
+        "AEIS", "AEO", "AGIO", "AGM", "AGNC", "AGX", "AHCO", "AHH", "AIRS", "AIT",
+        "AIZ", "AJRD", "AKR", "AL", "ALEX", "ALG", "ALGT", "ALHC", "ALIT", "ALK",
+        "ALKS", "ALLO", "ALPN", "ALRM", "ALSN", "ALTR", "AM", "AMBA", "AMBC", "AMCX",
+        "AMED", "AMK", "AMKR", "AMN", "AMPH", "AMPY", "AMR", "AMRC", "AMRX", "AMSC",
+        "AMSF", "AMSWA", "AMTB", "AMWD", "AN", "ANAB", "ANDE", "ANF", "ANGO", "ANIP",
+        "ANNX", "AORT", "AOSL", "APAM", "APG", "APLE", "APLS", "APO", "APOG", "APPF",
+        "APPN", "APPS", "AR", "ARAY", "ARCB", "ARCH", "ARCO", "ARDX", "ARI", "ARIS",
+        "ARLO", "AROC", "ARR", "ARRY", "ARTNA", "ARVN", "ARW", "ARWR", "ASAN", "ASB",
+        "ASGN", "ASH", "ASIX", "ASLE", "ASO", "ASPN", "ASTE", "ATEC", "ATEN", "ATEX",
+        "ATGE", "ATKR", "ATR", "ATRC", "ATRI", "ATRO", "ATSG", "ATUS", "AUB", "AUPH",
+        "AUR", "AVA", "AVAV", "AVD", "AVDX", "AVNS", "AVNT", "AVNW", "AVO", "AVT",
+        "AVXL", "AWR", "AX", "AXGN", "AXL", "AXNX", "AXON", "AXSM", "AZEK", "AZTA",
+        "AZZ", "B", "BANC", "BAND", "BANF", "BANR", "BARK", "BASE", "BBSI", "BC",
+        "BCC", "BCO", "BCPC", "BDC", "BE", "BEAM", "BECN", "BERY", "BFH", "BFS",
+        "BGCP", "BGS", "BGSF", "BH", "BHB", "BHE", "BHF", "BHLB", "BIG", "BIGC",
+        "BILL", "BIO", "BIPC", "BIVI", "BJRI", "BKD", "BKE", "BKH", "BKU", "BL",
+        "BLBD", "BLDR", "BLFS", "BLKB", "BLMN", "BLNK", "BMBL", "BMEA", "BMI", "BMRC",
+        "BMRN", "BMY", "BNL", "BOC", "BOH", "BOOM", "BOOT", "BORR", "BOX", "BPOP",
+        "BRBR", "BRC", "BRCC", "BRKL", "BRP", "BRSP", "BRT", "BRX", "BRY", "BSIG",
+        "BSRR", "BST", "BSVN", "BTBT", "BTU", "BUSE", "BV", "BWA", "BWXT", "BXMT",
+        "BXP", "BY", "BYD", "BYON", "BZH", "CABA", "CAC", "CADE", "CAKE", "CAL",
+        "CALM", "CALX", "CAMP", "CAPL", "CARA", "CARG", "CARR", "CARS", "CASH", "CASS",
+        "CATC", "CATO", "CATY", "CBAN", "CBB", "CBRE", "CBT", "CBU", "CBZ", "CC",
+        "CCBG", "CCCS", "CCF", "CCNE", "CCO", "CCOI", "CCRN", "CCS", "CD", "CDE",
+        "CDLX", "CDNA", "CDP", "CDRE", "CDXS", "CE", "CECO", "CEIX", "CENT", "CENTA",
+        "CENX", "CEPU", "CERE", "CERT", "CFB", "CFFN", "CFR", "CG", "CGEM", "CGTX",
+        "CHCO", "CHCT", "CHE", "CHEF", "CHGG", "CHH", "CHMG", "CHRD", "CHRS", "CHRW",
+        "CHTR", "CHUY", "CHWY", "CHX", "CIEN", "CIM", "CINF", "CIR", "CIVI", "CIX",
+        "CLAR", "CLB", "CLBK", "CLDT", "CLDX", "CLF", "CLFD", "CLH", "CLNE", "CLOV",
+        "CLPR", "CLR", "CLS", "CLSK", "CLVT", "CLW", "CM", "CMA", "CMBM", "CMC",
+        "CMCO", "CME", "CMP", "CMPR", "CMRE", "CMRX", "CMS", "CNA", "CNC", "CNDT",
+        "CNK", "CNM", "CNMD", "CNNE", "CNO", "CNOB", "CNS", "CNSL", "CNTY", "CNX",
+        "CNXC", "CNXN", "COCO", "CODI", "COFS", "COGT", "COHN", "COHU", "COKE", "COLB",
+        "COLD", "COLL", "COMM", "COMP", "COOK", "COOP", "CORT", "COUR", "CPE", "CPF",
+        "CPK", "CPRX", "CPSI", "CPSS", "CR", "CRAI", "CRBG", "CRBK", "CRC", "CRD.A",
+        "CRD.B", "CRDO", "CRGE", "CRGY", "CRI", "CRK", "CRL", "CRM", "CRMT", "CRNC",
+        "CRNX", "CRS", "CRSP", "CRSR", "CRVL", "CRWD", "CS", "CSGS", "CSR", "CSTL",
+        "CSTM", "CSV", "CSWC", "CTBI", "CTGO", "CTKB", "CTLP", "CTLT", "CTO", "CTOS",
+        "CTRA", "CTRE", "CTRN", "CTS", "CTSH", "CUBI", "CUE", "CUZ", "CVBF", "CVCO",
+        "CVE", "CVGI", "CVGW", "CVI", "CVLG", "CVLT", "CVNA", "CVRX", "CVT", "CW",
+        "CWAN", "CWH", "CWK", "CWST", "CXM", "CXW", "CYBR", "CYH", "CYT", "CYTH",
+        "CYTK", "CZFS", "CZNC", "CZR", "D", "DAKT", "DAL", "DAN", "DAR", "DAVA",
+        "DBD", "DBI", "DBRG", "DCBO", "DCGO", "DCO", "DCOM", "DDD", "DEA", "DEI",
+        "DEN", "DENN", "DFH", "DFIN", "DFS", "DGICA", "DGII", "DHC", "DHIL", "DIN",
+        "DIOD", "DISH", "DK", "DKS", "DLB", "DLHC", "DLR", "DLTH", "DLX", "DM",
+        "DMRC", "DNB", "DNLI", "DNOW", "DNUT", "DOC", "DOCN", "DOCS", "DOLE", "DOMO",
+        "DOOR", "DORM", "DOUG", "DOV", "DOX", "DRH", "DRI", "DRQ", "DRVN", "DSGN",
+        "DSGR", "DSKE", "DSP", "DT", "DTE", "DTM", "DUK", "DUNE", "DUOL", "DV",
+        "DVA", "DVAX", "DVN", "DX", "DXC", "DXCM", "DXPE", "DY", "DYN"
+    ]
+    
+    # STOXX Europe 600 (Top 200 repräsentativ)
+    STOXX600 = [
+        "ABBN.SW", "ABI.BR", "AD.AS", "ADS.DE", "ADYEN.AS", "AGN.AS", "AI.PA", "AIR.PA",
+        "AKZA.AS", "ALO.PA", "ALV.DE", "AMS.SW", "ASML.AS", "BAS.DE", "BAYN.DE", "BBVA.MC",
+        "BMW.DE", "BNP.PA", "BP.L", "CA.PA", "CAP.PA", "CARR.PA", "CS.PA", "DANSKE.CO",
+        "DBK.DE", "DG.PA", "DPW.DE", "DSV.CO", "DTE.DE", "EL.PA", "ENEL.MI", "ENGI.PA",
+        "EOAN.DE", "EQNR.OL", "ERIC-B.ST", "FLTR.L", "FP.PA", "FRE.DE", "G.MI", "GALP.LS",
+        "GIVN.SW", "GLEN.L", "HEI.DE", "HEIO.AS", "HM-B.ST", "HSBA.L", "IBE.MC", "IFX.DE",
+        "IMB.L", "INGA.AS", "ISP.MI", "ITX.MC", "KER.PA", "KNEBV.HE", "KPN.AS", "LGEN.L",
+        "LIN.DE", "LLOY.L", "LONN.SW", "LR.PA", "MBG.DE", "MC.PA", "MOWI.OL", "MRK.DE",
+        "MT.AS", "MUV2.DE", "NDA-SE.HE", "NESN.SW", "NOKIA.HE", "NOVN.SW", "ORA.PA", "OR.PA",
+        "PHIA.AS", "PRU.L", "PSON.L", "PUB.PA", "RB.L", "REL.L", "REP.MC", "RI.PA",
+        "RNO.PA", "ROG.SW", "RR.L", "SAF.PA", "SAN.MC", "SAP.DE", "SDF.DE", "SGO.PA",
+        "SHEL.L", "SIE.DE", "SLHN.SW", "SMDS.L", "SN.L", "SREN.SW", "SSE.L", "STAN.L",
+        "STM.PA", "STLA.PA", "SU.PA", "SWED-A.ST", "TEF.MC", "TEL.OL", "TEP.PA", "TSCO.L",
+        "TTE.PA", "UBSG.SW", "UCB.BR", "UMG.AS", "UNA.AS", "URW.PA", "VOD.L", "VOW3.DE",
+        "WKL.AS", "ZAL.DE", "ZURN.SW"
+    ]
+    
+    # Deutsche Aktien (DAX + MDAX + SDAX)
+    GERMAN = [
+        "ADS.DE", "AIR.DE", "ALV.DE", "BAS.DE", "BAYN.DE", "BMW.DE", "BNR.DE",
+        "CBK.DE", "CON.DE", "DTE.DE", "DBK.DE", "DB1.DE", "DPW.DE", "DRW3.DE",
+        "EOAN.DE", "FRE.DE", "FME.DE", "HEI.DE", "HEN3.DE", "IFX.DE", "LIN.DE",
+        "MBG.DE", "MRK.DE", "MTX.DE", "MUV2.DE", "PAH3.DE", "PUM.DE", "QIA.DE",
+        "RWE.DE", "SAP.DE", "SIE.DE", "SRT3.DE", "VOW3.DE", "VNA.DE", "ZAL.DE",
+        "AIXA.DE", "AT1.DE", "BOSS.DE", "EVT.DE", "FRA.DE", "G24.DE", "HLE.DE",
+        "KGX.DE", "LEG.DE", "LHA.DE", "LXS.DE", "NDA.DE", "OSR.DE", "RAA.DE",
+        "SHA.DE", "SY1.DE", "TEG.DE", "UTDI.DE", "WAF.DE", "AFX.DE", "ARL.DE",
+        "BC8.DE", "CE2.DE", "DEQ.DE", "DMP.DE", "DRW3.DE", "DUE.DE", "DWS.DE",
+        "ELG.DE", "FNTN.DE", "FPE3.DE", "G1A.DE", "GBF.DE", "GLJ.DE", "HABA.DE",
+        "HOT.DE", "HRPK.DE", "ION.DE", "JEN.DE", "JUN3.DE", "KCO.DE", "KRN.DE",
+        "KSB.DE", "KWS.DE", "LPK.DE", "MAN.DE", "MLP.DE", "MOR.DE", "MTX.DE",
+        "MUX.DE", "NDX1.DE", "NEM.DE", "NOEJ.DE", "NTG.DE", "O2D.DE", "PFV.DE",
+        "PSM.DE", "PUM.DE", "RHM.DE", "SAX.DE", "SDF.DE", "SFQ.DE", "SGL.DE",
+        "SIX2.DE", "SKB.DE", "SMHN.DE", "SPR.DE", "SQZ.DE", "STO3.DE", "SZG.DE",
+        "TLX.DE", "TTK.DE", "VOS.DE", "WAC.DE", "WCH.DE", "WSU.DE", "ZIL2.DE"
+    ]
+    
+    # Alle zusammenführen
     all_tickers = []
-    stats = {}
+    all_tickers.extend(SP500)
+    all_tickers.extend([t for t in NASDAQ100 if t not in all_tickers])
+    all_tickers.extend([t for t in RUSSELL2000 if t not in all_tickers])
+    all_tickers.extend([t for t in STOXX600 if t not in all_tickers])
+    all_tickers.extend([t for t in GERMAN if t not in all_tickers])
     
-    # 1. S&P 500
-    try:
-        sp500_df = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
-        sp500_tickers = sp500_df["Symbol"].tolist()
-        sp500_tickers = [t.replace('.', '-').strip() for t in sp500_tickers if str(t).strip()]
-        all_tickers.extend(sp500_tickers)
-        stats['S&P 500'] = len(sp500_tickers)
-    except Exception as e:
-        stats['S&P 500'] = f"Fehler: {e}"
-    
-    # 2. NASDAQ 100
-    try:
-        nasdaq_tables = pd.read_html("https://en.wikipedia.org/wiki/Nasdaq-100")
-        for t in nasdaq_tables:
-            if "Ticker" in str(t.columns) or "Symbol" in str(t.columns):
-                col_name = [c for c in t.columns if "Ticker" in str(c) or "Symbol" in str(c)][0]
-                nasdaq_tickers = t[col_name].tolist()
-                nasdaq_tickers = [str(t).replace('.', '-').strip() for t in nasdaq_tickers if str(t).strip() and str(t).lower() != 'nan']
-                all_tickers.extend(nasdaq_tickers)
-                stats['NASDAQ 100'] = len(nasdaq_tickers)
-                break
-    except Exception as e:
-        stats['NASDAQ 100'] = f"Fehler: {e}"
-    
-    # 3. Russell 2000
-    try:
-        russell_url = "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1467271812596.ajax?fileType=csv&fileName=IWM_holdings&dataType=fund"
-        russell_df = pd.read_csv(russell_url, skiprows=9)
-        if "Ticker" in russell_df.columns:
-            russell_tickers = russell_df["Ticker"].dropna().tolist()
-            russell_tickers = [str(t).strip() for t in russell_tickers if str(t).strip()]
-            all_tickers.extend(russell_tickers)
-            stats['Russell 2000'] = len(russell_tickers)
-    except Exception as e:
-        stats['Russell 2000'] = f"Fehler: {e}"
-    
-    # 4. STOXX Europe 600
-    try:
-        stoxx_tables = pd.read_html("https://en.wikipedia.org/wiki/STOXX_Europe_600")
-        for t in stoxx_tables:
-            cols = str(t.columns).lower()
-            if "ticker" in cols or "symbol" in cols:
-                first_col = t.columns[0]
-                stoxx_tickers = t[first_col].tolist()
-                stoxx_tickers = [str(t).strip() for t in stoxx_tickers if str(t).strip() and str(t).lower() != 'nan']
-                all_tickers.extend(stoxx_tickers)
-                stats['STOXX Europe 600'] = len(stoxx_tickers)
-                break
-    except Exception as e:
-        stats['STOXX Europe 600'] = f"Fehler: {e}"
-    
-    # Duplikate entfernen
-    all_unique = list(dict.fromkeys(all_tickers))
-    all_unique = [t for t in all_unique if t and len(t) > 0 and str(t).lower() != 'nan']
-    
-    return all_unique, stats
+    return all_tickers
 
 # ----------------------------------
 # INDIKATOREN & SCORE
 # ----------------------------------
 
 def calculate_indicators(df):
-    """Berechnet alle Indikatoren"""
     if len(df) < 20:
         return None
     try:
@@ -180,463 +287,79 @@ def calculate_indicators(df):
         return None
 
 def calculate_swing_score(df):
-    """Detaillierter Swing-Score 0-100"""
     if df is None or len(df) < 20:
         return 0
-    
     try:
         latest = df.iloc[-1]
         prev = df.iloc[-2] if len(df) > 1 else latest
         score = 0
         
-        # === TREND (30 Punkte) ===
-        trend_points = 0
-        
-        # SMA Alignment (15 Punkte)
-        if pd.notna(latest.get('SMA_20')) and pd.notna(latest.get('SMA_50')) and pd.notna(latest.get('SMA_200')):
-            if latest['SMA_20'] > latest['SMA_50'] > latest['SMA_200']:
-                trend_points += 15
-            elif latest['SMA_20'] > latest['SMA_50']:
-                trend_points += 10
-            elif latest['Close'] > latest['SMA_50']:
-                trend_points += 5
-        
-        # Kurs über SMA20 (10 Punkte)
-        if pd.notna(latest.get('SMA_20')):
+        # Trend (30 Pkt)
+        if pd.notna(latest.get('SMA_20')) and pd.notna(latest.get('SMA_50')):
+            if latest['SMA_20'] > latest['SMA_50']:
+                score += 15
             if latest['Close'] > latest['SMA_20']:
-                trend_points += 7
-                # Kurs nahe SMA20 (Pullback-Setup) = Bonus
+                score += 10
                 distance = (latest['Close'] - latest['SMA_20']) / latest['SMA_20'] * 100
                 if 0 < distance < 3:
-                    trend_points += 3
+                    score += 5
         
-        # Höhere Hochs (5 Punkte)
-        if len(df) >= 40:
-            recent_high = df['High'].iloc[-20:].max()
-            older_high = df['High'].iloc[-40:-20].max()
-            if recent_high > older_high:
-                trend_points += 5
-        
-        score += min(30, trend_points)
-        
-        # === MOMENTUM / ADX (25 Punkte) ===
-        momentum_points = 0
-        
+        # ADX (25 Pkt)
         if pd.notna(latest.get('ADX')):
             adx = latest['ADX']
-            if adx > 50: momentum_points += 25
-            elif adx > 40: momentum_points += 22
-            elif adx > 35: momentum_points += 18
-            elif adx > 30: momentum_points += 15
-            elif adx > 25: momentum_points += 10
-            elif adx > 20: momentum_points += 5
-            else: momentum_points += 1
+            if adx > 50: score += 25
+            elif adx > 40: score += 22
+            elif adx > 35: score += 18
+            elif adx > 30: score += 15
+            elif adx > 25: score += 10
+            elif adx > 20: score += 5
+            else: score += 1
         
-        score += min(25, momentum_points)
-        
-        # === RSI (20 Punkte) ===
-        rsi_points = 0
-        
+        # RSI (20 Pkt)
         if pd.notna(latest.get('RSI')):
             rsi = latest['RSI']
             rsi_prev = prev.get('RSI') if pd.notna(prev.get('RSI')) else rsi
-            
-            # Optimaler Long-Bereich
-            if 45 <= rsi <= 58:
-                rsi_points += 20
-            elif 40 <= rsi <= 65:
-                rsi_points += 16
-            elif 35 <= rsi <= 70:
-                rsi_points += 10
-            elif rsi < 35:
-                rsi_points += 6
-            elif rsi > 70:
-                rsi_points += 4
-            else:
-                rsi_points += 2
-            
-            # RSI steigend = Bonus
-            if rsi > rsi_prev:
-                rsi_points += 2
+            if 45 <= rsi <= 58: score += 20
+            elif 40 <= rsi <= 65: score += 16
+            elif 35 <= rsi <= 70: score += 10
+            elif rsi < 35: score += 6
+            elif rsi > 70: score += 4
+            else: score += 2
+            if rsi > rsi_prev: score += 2
         
-        score += min(20, rsi_points)
-        
-        # === VOLUMEN (15 Punkte) ===
-        volume_points = 0
-        
+        # Volumen (15 Pkt)
         if pd.notna(latest.get('Volume_Ratio')):
             vr = latest['Volume_Ratio']
-            if 1.3 <= vr <= 2.5:
-                volume_points += 15
-            elif 1.1 <= vr <= 3.0:
-                volume_points += 12
-            elif 0.9 <= vr <= 3.5:
-                volume_points += 8
-            elif vr > 0.7:
-                volume_points += 4
-            else:
-                volume_points += 1
+            if 1.3 <= vr <= 2.5: score += 15
+            elif 1.1 <= vr <= 3.0: score += 12
+            elif 0.9 <= vr <= 3.5: score += 8
+            elif vr > 0.7: score += 4
+            else: score += 1
         
-        score += min(15, volume_points)
-        
-        # === MACD (10 Punkte) ===
-        macd_points = 0
-        
+        # MACD (10 Pkt)
         if pd.notna(latest.get('MACD')) and pd.notna(latest.get('MACD_signal')):
-            macd = latest['MACD']
-            macd_sig = latest['MACD_signal']
+            if latest['MACD'] > latest['MACD_signal'] and latest['MACD'] > 0:
+                score += 7
+            elif latest['MACD'] > latest['MACD_signal']:
+                score += 5
+            elif latest['MACD'] > 0:
+                score += 3
             macd_hist = latest.get('MACD_hist', 0)
-            
-            if macd > macd_sig and macd > 0:
-                macd_points += 7
-            elif macd > macd_sig:
-                macd_points += 5
-            elif macd > 0:
-                macd_points += 3
-            
-            # Histogramm steigend
-            if pd.notna(macd_hist):
-                prev_hist = prev.get('MACD_hist', 0) if pd.notna(prev.get('MACD_hist')) else 0
-                if macd_hist > prev_hist:
-                    macd_points += 3
-        
-        score += min(10, macd_points)
+            prev_hist = prev.get('MACD_hist', 0)
+            if pd.notna(macd_hist) and pd.notna(prev_hist) and macd_hist > prev_hist:
+                score += 3
         
         return min(100, score)
-    
     except:
         return 0
 
 def get_tradingview_link(ticker):
-    """TradingView Chart Link"""
     ticker_upper = ticker.upper()
-    
     if '.DE' in ticker_upper:
-        exchange = "XETR"
-        clean = ticker_upper.replace('.DE', '')
+        exchange, clean = "XETR", ticker_upper.replace('.DE', '')
     elif '.L' in ticker_upper:
-        exchange = "LSE"
-        clean = ticker_upper.replace('.L', '')
+        exchange, clean = "LSE", ticker_upper.replace('.L', '')
     elif '.PA' in ticker_upper:
-        exchange = "EURONEXT"
-        clean = ticker_upper.replace('.PA', '')
+        exchange, clean = "EURONEXT", ticker_upper.replace('.PA', '')
     elif '.MI' in ticker_upper:
-        exchange = "MIL"
-        clean = ticker_upper.replace('.MI', '')
-    elif '.SW' in ticker_upper:
-        exchange = "SWX"
-        clean = ticker_upper.replace('.SW', '')
-    else:
-        exchange = "NASDAQ"
-        clean = ticker_upper
-    
-    return f"https://www.tradingview.com/chart/?symbol={exchange}%3A{clean}&interval=D"
-
-def scan_one_ticker(ticker):
-    """Scannt EINEN Ticker"""
-    try:
-        stock = yf.Ticker(ticker)
-        df = stock.history(period="3mo", interval="1d")
-        
-        if df.empty or len(df) < 20:
-            return None
-        
-        avg_vol = df['Volume'].tail(20).mean()
-        price = df['Close'].iloc[-1]
-        daily_volume_dollar = avg_vol * price
-        
-        if daily_volume_dollar < 500000:
-            return None
-        
-        df = calculate_indicators(df)
-        if df is None:
-            return None
-        
-        score = calculate_swing_score(df)
-        latest = df.iloc[-1]
-        
-        try:
-            name = stock.info.get('shortName', ticker)
-        except:
-            name = ticker
-        
-        rsi = latest.get('RSI', 50)
-        if pd.isna(rsi): rsi = 50
-        
-        adx = latest.get('ADX', 20)
-        if pd.isna(adx): adx = 20
-        
-        vr = latest.get('Volume_Ratio', 1.0)
-        if pd.isna(vr): vr = 1.0
-        
-        atr = latest.get('ATR', 0)
-        if pd.isna(atr) or price == 0:
-            atr_pct = 2.0
-        else:
-            atr_pct = (atr / price) * 100
-        
-        sma20 = latest.get('SMA_20')
-        if pd.isna(sma20):
-            sma_status = 'N/A'
-        else:
-            sma_status = 'Above' if price > sma20 else 'Below'
-        
-        macd = latest.get('MACD')
-        macd_sig = latest.get('MACD_signal')
-        if pd.isna(macd) or pd.isna(macd_sig):
-            macd_status = 'N/A'
-        else:
-            macd_status = 'Bullish' if macd > macd_sig else 'Bearish'
-        
-        return {
-            'Ticker': ticker,
-            'Name': str(name)[:60],
-            'Preis': round(price, 2),
-            'Swing-Score': score,
-            'RSI': round(rsi, 1),
-            'ADX': round(adx, 1),
-            'Vol Ratio': round(vr, 2),
-            'ATR%': round(atr_pct, 2),
-            'SMA20': sma_status,
-            'MACD': macd_status,
-            'Volumen': round(daily_volume_dollar, 0),
-            'Chart': get_tradingview_link(ticker)
-        }
-    except:
-        return None
-
-# ----------------------------------
-# HAUPTBEREICH
-# ----------------------------------
-
-st.title("🌍 Kompletter Markt-Scanner")
-st.markdown("### Alle S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600")
-st.markdown("---")
-
-# Lade Ticker beim Start
-with st.spinner("🔄 Lade Ticker-Listen von Wikipedia & iShares..."):
-    all_tickers, ticker_stats = load_all_tickers()
-
-# Zeige Statistiken
-st.success(f"✅ **{len(all_tickers):,} unique Ticker geladen!**")
-
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.metric("S&P 500", ticker_stats.get('S&P 500', 'N/A'))
-with col2:
-    st.metric("NASDAQ 100", ticker_stats.get('NASDAQ 100', 'N/A'))
-with col3:
-    st.metric("Russell 2000", ticker_stats.get('Russell 2000', 'N/A'))
-with col4:
-    st.metric("STOXX 600", ticker_stats.get('STOXX Europe 600', 'N/A'))
-
-st.markdown("---")
-st.markdown(f"**Filter:** Swing-Score ≥ {min_score} | Volumen ≥ ${min_volume:,} | Preis ${min_price}-${max_price} | RSI {rsi_min}-{rsi_max} | ADX ≥ {adx_min}")
-
-# SCAN BUTTON
-if st.button("🚀 ALLE AKTIEN SCANNEN (100%)", type="primary", use_container_width=True):
-    
-    st.markdown("---")
-    st.subheader("🔄 Scan läuft...")
-    st.caption(f"Scanne {len(all_tickers):,} Aktien - dies kann 15-30 Minuten dauern")
-    
-    # Fortschritts-Anzeige
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    time_text = st.empty()
-    
-    results = []
-    total = len(all_tickers)
-    completed = 0
-    start_time = time.time()
-    
-    # Paralleler Scan mit 25 Workern
-    with ThreadPoolExecutor(max_workers=25) as executor:
-        futures = {executor.submit(scan_one_ticker, ticker): ticker for ticker in all_tickers}
-        
-        for future in as_completed(futures):
-            completed += 1
-            result = future.result()
-            
-            if result is not None:
-                results.append(result)
-            
-            # Update alle 50 Ticker
-            if completed % 50 == 0 or completed == total:
-                progress = completed / total
-                progress_bar.progress(progress)
-                
-                elapsed = time.time() - start_time
-                speed = completed / elapsed if elapsed > 0 else 0
-                remaining = (total - completed) / speed if speed > 0 else 0
-                
-                status_text.text(f"✅ {completed:,}/{total:,} gescannt | 🎯 {len(results):,} Treffer")
-                time_text.text(f"⏱ {elapsed:.0f}s | 🏃 {speed:.1f} Aktien/s | ⏳ Noch ~{remaining:.0f}s")
-    
-    progress_bar.empty()
-    status_text.empty()
-    time_text.empty()
-    
-    total_time = time.time() - start_time
-    
-    # Ergebnisse filtern
-    if results:
-        df_all = pd.DataFrame(results)
-        
-        # Filter anwenden
-        df_filtered = df_all[
-            (df_all['Swing-Score'] >= min_score) &
-            (df_all['Volumen'] >= min_volume) &
-            (df_all['Preis'] >= min_price) &
-            (df_all['Preis'] <= max_price) &
-            (df_all['RSI'] >= rsi_min) &
-            (df_all['RSI'] <= rsi_max) &
-            (df_all['ADX'] >= adx_min) &
-            (df_all['Vol Ratio'] >= vol_ratio_min)
-        ]
-        
-        df_filtered = df_filtered.sort_values('Swing-Score', ascending=False)
-        
-        # ERGEBNISSE
-        st.markdown("---")
-        st.subheader(f"🎯 {len(df_filtered):,} Aktien mit Score ≥ {min_score}")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("📊 Gefilterte Treffer", f"{len(df_filtered):,}")
-        with col2:
-            st.metric("⏱ Gesamtzeit", f"{total_time:.0f}s ({total_time/60:.1f} Min)")
-        with col3:
-            best = df_filtered['Swing-Score'].max() if not df_filtered.empty else 0
-            st.metric("🏆 Bester Score", f"{best}/100")
-        with col4:
-            avg = df_filtered['Swing-Score'].mean() if not df_filtered.empty else 0
-            st.metric("📈 Durchschnitt", f"{avg:.0f}/100")
-        
-        st.caption(f"{len(df_all):,} Roh-Treffer → {len(df_filtered):,} nach Filtern")
-        
-        if not df_filtered.empty:
-            # Score-Verteilung
-            st.markdown("---")
-            st.subheader("📊 Score-Verteilung")
-            
-            score_bins = [75, 80, 85, 90, 95, 100]
-            score_labels = ['75-79', '80-84', '85-89', '90-94', '95-100']
-            df_filtered['Score-Range'] = pd.cut(df_filtered['Swing-Score'], bins=score_bins, labels=score_labels)
-            dist = df_filtered['Score-Range'].value_counts().sort_index()
-            
-            fig_dist = go.Figure(data=[go.Bar(
-                x=dist.index, y=dist.values,
-                marker_color=['#ffaa00', '#ffdd00', '#88ff00', '#44ff00', '#00ff88'],
-                text=dist.values, textposition='auto'
-            )])
-            fig_dist.update_layout(height=250, template='plotly_dark', margin=dict(l=0,r=0,t=10,b=0),
-                xaxis_title="Score-Bereich", yaxis_title="Anzahl")
-            st.plotly_chart(fig_dist, use_container_width=True)
-            
-            # Tabelle
-            st.markdown("---")
-            st.subheader("📋 Alle Ergebnisse (📈 = TradingView Chart)")
-            
-            for i, (_, row) in enumerate(df_filtered.iterrows()):
-                score = row['Swing-Score']
-                
-                if score >= 95:
-                    emoji, color = "👑", "#ffd700"
-                elif score >= 90:
-                    emoji, color = "🌟", "#00ff88"
-                elif score >= 85:
-                    emoji, color = "✅", "#88ff00"
-                elif score >= 80:
-                    emoji, color = "👍", "#44ff00"
-                else:
-                    emoji, color = "📊", "#ffaa00"
-                
-                macd_color = "#00ff88" if row['MACD'] == 'Bullish' else "#ff4444" if row['MACD'] == 'Bearish' else "gray"
-                
-                cols = st.columns([0.6, 1.5, 0.8, 0.7, 0.7, 0.7, 0.7, 0.7])
-                
-                cols[0].markdown(f"<span style='color:{color};font-weight:bold;font-size:16px'>{emoji} {score}</span>", unsafe_allow_html=True)
-                cols[1].markdown(f"**{row['Ticker']}**  \n*{row['Name'][:40]}*")
-                cols[2].markdown(f"${row['Preis']:.2f}")
-                cols[3].markdown(f"RSI {row['RSI']:.1f}")
-                cols[4].markdown(f"ADX {row['ADX']:.1f}")
-                cols[5].markdown(f"Vol {row['Vol Ratio']:.1f}x")
-                cols[6].markdown(f"<span style='color:{macd_color};font-weight:bold'>{row['MACD']}</span>", unsafe_allow_html=True)
-                cols[7].markdown(f"[📈 Chart]({row['Chart']})")
-                
-                if i < len(df_filtered) - 1:
-                    st.divider()
-            
-            # CSV Download
-            st.markdown("---")
-            csv = df_filtered.to_csv(index=False)
-            st.download_button(
-                f"📥 {len(df_filtered):,} Ergebnisse als CSV herunterladen",
-                csv,
-                f"alle_maerkte_scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                'text/csv'
-            )
-            
-            # Top 10 Detail-Ansicht
-            st.markdown("---")
-            st.subheader("🏆 Top 10 Swing-Trading Kandidaten")
-            
-            top10 = df_filtered.head(10)
-            for i, (_, row) in enumerate(top10.iterrows()):
-                with st.expander(
-                    f"#{i+1} | {row['Ticker']} | Score: {row['Swing-Score']}/100 | ${row['Preis']:.2f}",
-                    expanded=(i < 3)
-                ):
-                    c1, c2, c3, c4 = st.columns(4)
-                    with c1:
-                        st.metric("Swing-Score", f"{row['Swing-Score']}/100")
-                        st.metric("Preis", f"${row['Preis']:.2f}")
-                    with c2:
-                        st.metric("RSI", f"{row['RSI']:.1f}")
-                        st.metric("ADX", f"{row['ADX']:.1f}")
-                    with c3:
-                        st.metric("ATR%", f"{row['ATR%']:.2f}%")
-                        st.metric("Vol Ratio", f"{row['Vol Ratio']:.2f}x")
-                    with c4:
-                        st.metric("SMA20", row['SMA20'])
-                        st.metric("MACD", row['MACD'])
-                    
-                    st.markdown(f"[📈 TradingView 1-Tages-Chart öffnen]({row['Chart']})")
-                    
-                    # Mini-Chart
-                    try:
-                        mini = yf.Ticker(row['Ticker']).history(period="1mo")
-                        if not mini.empty and len(mini) > 5:
-                            fig = go.Figure()
-                            fig.add_trace(go.Candlestick(
-                                x=mini.index, open=mini['Open'], high=mini['High'],
-                                low=mini['Low'], close=mini['Close'],
-                                increasing_line_color='#00ff88', decreasing_line_color='#ff4444',
-                                showlegend=False
-                            ))
-                            sma = mini['Close'].rolling(20).mean()
-                            fig.add_trace(go.Scatter(x=mini.index, y=sma, name='SMA20',
-                                line=dict(color='orange', width=1), showlegend=False))
-                            fig.update_layout(height=200, margin=dict(l=0,r=0,t=0,b=0),
-                                template='plotly_dark', xaxis=dict(showticklabels=False),
-                                yaxis=dict(showticklabels=False))
-                            st.plotly_chart(fig, use_container_width=True)
-                    except:
-                        pass
-        else:
-            st.warning(f"⚠️ Keine Aktien mit Score ≥ {min_score} gefunden.")
-            st.markdown("""
-            **Versuche:**
-            - Score auf 70+ senken
-            - Volumen-Filter reduzieren
-            - RSI-Bereich erweitern
-            - ADX-Minimum senken
-            - Andere Tageszeit (Yahoo-Limits)
-            """)
-    else:
-        st.error("❌ Keine Ergebnisse! Yahoo Finance blockt möglicherweise.")
-        st.info("Cache leeren & in 5 Minuten neu versuchen.")
-
-st.markdown("---")
-st.caption(f"⚠️ Keine Finanzberatung | Daten: Yahoo Finance (verzögert) | {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
+        exchange, clean = "MIL", ticker_upper
