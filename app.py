@@ -366,7 +366,6 @@ def get_tradingview_link(ticker):
         exchange, clean = "EURONEXT", ticker_upper.replace('.LS', '')
     else:
         exchange, clean = "NASDAQ", ticker_upper
-    
     return f"https://www.tradingview.com/chart/?symbol={exchange}%3A{clean}&interval=D"
 
 def scan_one_ticker(ticker):
@@ -392,4 +391,4 @@ def scan_one_ticker(ticker):
         latest = df.iloc[-1]
         
         try:
-           
+            name = stock.info.get('shortName', tick
