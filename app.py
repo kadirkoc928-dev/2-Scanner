@@ -48,17 +48,17 @@ st.sidebar.info("""
 **Eingebaute Märkte:**
 - S&P 500 (503 Aktien)
 - NASDAQ 100 (102 Aktien)
-- Russell 2000 (1975 Aktien)
-- STOXX Europe 600 (600 Aktien)
+- Russell 2000 (500 Aktien)
+- STOXX Europe 600 (200 Aktien)
 - Deutsche Aktien (160 Aktien)
 
-**Gesamt: ~3340 Aktien**
+**Gesamt: ~1465 Aktien**
 """)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 Swing-Score Filter")
 min_score = st.sidebar.slider("Minimum Swing-Score:", 0, 100, 75)
-st.sidebar.caption("Nur Aktien mit Score ≥ diesem Wert")
+st.sidebar.caption("Nur Aktien mit Score >= diesem Wert")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("⚙️ Zusätzliche Filter")
@@ -79,7 +79,7 @@ if st.sidebar.button("🗑️ Cache leeren & neustarten"):
 
 st.sidebar.markdown("---")
 st.sidebar.caption("⚠️ Keine Finanzberatung!")
-st.sidebar.caption("⏱ Scan-Dauer: 15-30 Min für 3340 Aktien")
+st.sidebar.caption("⏱ Scan-Dauer: ~10-20 Minuten")
 st.sidebar.caption("📊 Daten: Yahoo Finance (verzögert)")
 
 # ----------------------------------
@@ -88,9 +88,8 @@ st.sidebar.caption("📊 Daten: Yahoo Finance (verzögert)")
 
 @st.cache_data(ttl=86400)
 def get_all_tickers():
-    """Alle Ticker als eingebaute Listen (keine externen Requests)"""
+    """Alle Ticker als eingebaute Listen"""
     
-    # S&P 500 (Feb 2024)
     SP500 = [
         "A", "AAL", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE", "ADI",
         "ADM", "ADP", "ADSK", "AEE", "AEP", "AES", "AFL", "AIG", "AIZ", "AJG",
@@ -144,7 +143,6 @@ def get_all_tickers():
         "XEL", "XOM", "XRAY", "XYL", "YUM", "ZBH", "ZBRA", "ZION", "ZTS"
     ]
     
-    # NASDAQ 100
     NASDAQ100 = [
         "AAPL", "ABNB", "ADBE", "ADI", "ADP", "ADSK", "AEP", "AMAT", "AMD", "AMGN",
         "AMZN", "ANSS", "ASML", "AVGO", "AZN", "BIIB", "BKNG", "BKR", "CDNS", "CDW",
@@ -159,62 +157,55 @@ def get_all_tickers():
         "XEL", "ZS"
     ]
     
-    # Russell 2000 (Top 500 für Performance, repräsentativ)
     RUSSELL2000 = [
-        "AAN", "AAON", "ABCB", "ABG", "ABM", "ABR", "ACAD", "ACCD", "ACCO", "ACEL",
-        "ACHC", "ACIW", "ACLS", "ACMR", "ACRE", "ACT", "ACVA", "ADMA", "ADNT", "ADUS",
-        "AEIS", "AEO", "AGIO", "AGM", "AGNC", "AGX", "AHCO", "AHH", "AIRS", "AIT",
-        "AIZ", "AJRD", "AKR", "AL", "ALEX", "ALG", "ALGT", "ALHC", "ALIT", "ALK",
-        "ALKS", "ALLO", "ALPN", "ALRM", "ALSN", "ALTR", "AM", "AMBA", "AMBC", "AMCX",
-        "AMED", "AMK", "AMKR", "AMN", "AMPH", "AMPY", "AMR", "AMRC", "AMRX", "AMSC",
-        "AMSF", "AMSWA", "AMTB", "AMWD", "AN", "ANAB", "ANDE", "ANF", "ANGO", "ANIP",
-        "ANNX", "AORT", "AOSL", "APAM", "APG", "APLE", "APLS", "APO", "APOG", "APPF",
-        "APPN", "APPS", "AR", "ARAY", "ARCB", "ARCH", "ARCO", "ARDX", "ARI", "ARIS",
-        "ARLO", "AROC", "ARR", "ARRY", "ARTNA", "ARVN", "ARW", "ARWR", "ASAN", "ASB",
-        "ASGN", "ASH", "ASIX", "ASLE", "ASO", "ASPN", "ASTE", "ATEC", "ATEN", "ATEX",
+        "AAON", "ABCB", "ABG", "ABM", "ABR", "ACAD", "ACHC", "ACIW", "ACLS", "ACMR",
+        "ADMA", "ADNT", "ADUS", "AEIS", "AEO", "AGIO", "AGM", "AGNC", "AGX", "AHCO",
+        "AHH", "AIT", "AIZ", "AJRD", "AKR", "AL", "ALEX", "ALG", "ALGT", "ALHC",
+        "ALIT", "ALK", "ALKS", "ALLO", "ALRM", "ALSN", "ALTR", "AM", "AMBA", "AMBC",
+        "AMCX", "AMED", "AMK", "AMKR", "AMN", "AMPH", "AMR", "AMRC", "AMRX", "AMSC",
+        "AMSF", "AMTB", "AMWD", "AN", "ANAB", "ANDE", "ANF", "ANGO", "ANIP",
+        "AORT", "AOSL", "APAM", "APG", "APLE", "APLS", "APO", "APOG", "APPF",
+        "APPN", "AR", "ARAY", "ARCB", "ARCH", "ARCO", "ARDX", "ARI", "ARIS",
+        "ARLO", "AROC", "ARR", "ARRY", "ARVN", "ARW", "ARWR", "ASAN", "ASB",
+        "ASGN", "ASH", "ASIX", "ASLE", "ASO", "ASPN", "ASTE", "ATEC", "ATEN",
         "ATGE", "ATKR", "ATR", "ATRC", "ATRI", "ATRO", "ATSG", "ATUS", "AUB", "AUPH",
         "AUR", "AVA", "AVAV", "AVD", "AVDX", "AVNS", "AVNT", "AVNW", "AVO", "AVT",
         "AVXL", "AWR", "AX", "AXGN", "AXL", "AXNX", "AXON", "AXSM", "AZEK", "AZTA",
         "AZZ", "B", "BANC", "BAND", "BANF", "BANR", "BARK", "BASE", "BBSI", "BC",
         "BCC", "BCO", "BCPC", "BDC", "BE", "BEAM", "BECN", "BERY", "BFH", "BFS",
-        "BGCP", "BGS", "BGSF", "BH", "BHB", "BHE", "BHF", "BHLB", "BIG", "BIGC",
-        "BILL", "BIO", "BIPC", "BIVI", "BJRI", "BKD", "BKE", "BKH", "BKU", "BL",
-        "BLBD", "BLDR", "BLFS", "BLKB", "BLMN", "BLNK", "BMBL", "BMEA", "BMI", "BMRC",
-        "BMRN", "BMY", "BNL", "BOC", "BOH", "BOOM", "BOOT", "BORR", "BOX", "BPOP",
-        "BRBR", "BRC", "BRCC", "BRKL", "BRP", "BRSP", "BRT", "BRX", "BRY", "BSIG",
-        "BSRR", "BST", "BSVN", "BTBT", "BTU", "BUSE", "BV", "BWA", "BWXT", "BXMT",
-        "BXP", "BY", "BYD", "BYON", "BZH", "CABA", "CAC", "CADE", "CAKE", "CAL",
-        "CALM", "CALX", "CAMP", "CAPL", "CARA", "CARG", "CARR", "CARS", "CASH", "CASS",
-        "CATC", "CATO", "CATY", "CBAN", "CBB", "CBRE", "CBT", "CBU", "CBZ", "CC",
-        "CCBG", "CCCS", "CCF", "CCNE", "CCO", "CCOI", "CCRN", "CCS", "CD", "CDE",
-        "CDLX", "CDNA", "CDP", "CDRE", "CDXS", "CE", "CECO", "CEIX", "CENT", "CENTA",
-        "CENX", "CEPU", "CERE", "CERT", "CFB", "CFFN", "CFR", "CG", "CGEM", "CGTX",
-        "CHCO", "CHCT", "CHE", "CHEF", "CHGG", "CHH", "CHMG", "CHRD", "CHRS", "CHRW",
-        "CHTR", "CHUY", "CHWY", "CHX", "CIEN", "CIM", "CINF", "CIR", "CIVI", "CIX",
-        "CLAR", "CLB", "CLBK", "CLDT", "CLDX", "CLF", "CLFD", "CLH", "CLNE", "CLOV",
-        "CLPR", "CLR", "CLS", "CLSK", "CLVT", "CLW", "CM", "CMA", "CMBM", "CMC",
-        "CMCO", "CME", "CMP", "CMPR", "CMRE", "CMRX", "CMS", "CNA", "CNC", "CNDT",
-        "CNK", "CNM", "CNMD", "CNNE", "CNO", "CNOB", "CNS", "CNSL", "CNTY", "CNX",
-        "CNXC", "CNXN", "COCO", "CODI", "COFS", "COGT", "COHN", "COHU", "COKE", "COLB",
+        "BGCP", "BGS", "BH", "BHE", "BHF", "BHLB", "BIGC", "BILL", "BIO", "BIPC",
+        "BJRI", "BKD", "BKE", "BKH", "BKU", "BL", "BLBD", "BLDR", "BLFS", "BLKB",
+        "BLMN", "BMBL", "BMI", "BMRC", "BMRN", "BMY", "BNL", "BOC", "BOH", "BOOT",
+        "BORR", "BOX", "BPOP", "BRBR", "BRC", "BRKL", "BRP", "BRSP", "BRT", "BRX",
+        "BRY", "BSIG", "BSRR", "BTU", "BUSE", "BV", "BWA", "BWXT", "BXMT",
+        "BXP", "BY", "BYD", "BZH", "CAC", "CADE", "CAKE", "CAL", "CALM", "CALX",
+        "CARG", "CARR", "CARS", "CASH", "CASS", "CATC", "CATY", "CBAN", "CBRE", "CBT",
+        "CBU", "CBZ", "CC", "CCBG", "CCCS", "CCNE", "CCO", "CCOI", "CCRN", "CCS",
+        "CD", "CDE", "CDNA", "CDP", "CDRE", "CE", "CECO", "CEIX", "CENT", "CENTA",
+        "CENX", "CERT", "CFB", "CFFN", "CFR", "CG", "CGEM", "CHCO", "CHCT", "CHE",
+        "CHEF", "CHGG", "CHH", "CHMG", "CHRD", "CHRW", "CHTR", "CHUY", "CHWY", "CHX",
+        "CIEN", "CIM", "CINF", "CIR", "CIVI", "CLB", "CLBK", "CLDT", "CLDX", "CLF",
+        "CLFD", "CLH", "CLNE", "CLOV", "CLPR", "CLR", "CLS", "CLSK", "CLVT", "CLW",
+        "CM", "CMA", "CMC", "CMCO", "CME", "CMP", "CMPR", "CMRE", "CMS", "CNA",
+        "CNC", "CNDT", "CNK", "CNM", "CNMD", "CNNE", "CNO", "CNOB", "CNS", "CNSL",
+        "CNTY", "CNX", "CNXC", "CNXN", "COCO", "CODI", "COHU", "COKE", "COLB",
         "COLD", "COLL", "COMM", "COMP", "COOK", "COOP", "CORT", "COUR", "CPE", "CPF",
-        "CPK", "CPRX", "CPSI", "CPSS", "CR", "CRAI", "CRBG", "CRBK", "CRC", "CRD.A",
-        "CRD.B", "CRDO", "CRGE", "CRGY", "CRI", "CRK", "CRL", "CRM", "CRMT", "CRNC",
-        "CRNX", "CRS", "CRSP", "CRSR", "CRVL", "CRWD", "CS", "CSGS", "CSR", "CSTL",
-        "CSTM", "CSV", "CSWC", "CTBI", "CTGO", "CTKB", "CTLP", "CTLT", "CTO", "CTOS",
-        "CTRA", "CTRE", "CTRN", "CTS", "CTSH", "CUBI", "CUE", "CUZ", "CVBF", "CVCO",
-        "CVE", "CVGI", "CVGW", "CVI", "CVLG", "CVLT", "CVNA", "CVRX", "CVT", "CW",
-        "CWAN", "CWH", "CWK", "CWST", "CXM", "CXW", "CYBR", "CYH", "CYT", "CYTH",
-        "CYTK", "CZFS", "CZNC", "CZR", "D", "DAKT", "DAL", "DAN", "DAR", "DAVA",
-        "DBD", "DBI", "DBRG", "DCBO", "DCGO", "DCO", "DCOM", "DDD", "DEA", "DEI",
-        "DEN", "DENN", "DFH", "DFIN", "DFS", "DGICA", "DGII", "DHC", "DHIL", "DIN",
-        "DIOD", "DISH", "DK", "DKS", "DLB", "DLHC", "DLR", "DLTH", "DLX", "DM",
-        "DMRC", "DNB", "DNLI", "DNOW", "DNUT", "DOC", "DOCN", "DOCS", "DOLE", "DOMO",
-        "DOOR", "DORM", "DOUG", "DOV", "DOX", "DRH", "DRI", "DRQ", "DRVN", "DSGN",
-        "DSGR", "DSKE", "DSP", "DT", "DTE", "DTM", "DUK", "DUNE", "DUOL", "DV",
-        "DVA", "DVAX", "DVN", "DX", "DXC", "DXCM", "DXPE", "DY", "DYN"
+        "CPK", "CPRX", "CR", "CRAI", "CRBG", "CRC", "CRDO", "CRGE", "CRGY", "CRI",
+        "CRK", "CRL", "CRM", "CRMT", "CRNC", "CRNX", "CRS", "CRSP", "CRSR", "CRVL",
+        "CRWD", "CSGS", "CSR", "CSTL", "CSTM", "CSV", "CSWC", "CTBI", "CTKB", "CTLP",
+        "CTLT", "CTO", "CTOS", "CTRA", "CTRE", "CTRN", "CTS", "CTSH", "CUBI", "CUZ",
+        "CVBF", "CVCO", "CVE", "CVGW", "CVI", "CVLG", "CVLT", "CVNA", "CW",
+        "CWAN", "CWH", "CWK", "CWST", "CXM", "CXW", "CYBR", "CYH", "CYTK", "CZFS",
+        "CZNC", "CZR", "D", "DAKT", "DAL", "DAN", "DAR", "DAVA", "DBD", "DBI",
+        "DBRG", "DCBO", "DCGO", "DCO", "DCOM", "DDD", "DEA", "DEI", "DEN", "DENN",
+        "DFH", "DFIN", "DFS", "DGICA", "DGII", "DHC", "DHIL", "DIN", "DIOD", "DISH",
+        "DK", "DKS", "DLB", "DLHC", "DLR", "DLTH", "DLX", "DM", "DNB", "DNLI",
+        "DNOW", "DNUT", "DOC", "DOCN", "DOCS", "DOLE", "DOMO", "DOOR", "DORM", "DOUG",
+        "DOV", "DOX", "DRH", "DRI", "DRQ", "DRVN", "DSGR", "DSKE", "DT", "DTE",
+        "DTM", "DUK", "DUOL", "DV", "DVA", "DVAX", "DVN", "DX", "DXC", "DXCM",
+        "DXPE", "DY", "DYN"
     ]
     
-    # STOXX Europe 600 (Top 200 repräsentativ)
     STOXX600 = [
         "ABBN.SW", "ABI.BR", "AD.AS", "ADS.DE", "ADYEN.AS", "AGN.AS", "AI.PA", "AIR.PA",
         "AKZA.AS", "ALO.PA", "ALV.DE", "AMS.SW", "ASML.AS", "BAS.DE", "BAYN.DE", "BBVA.MC",
@@ -233,7 +224,6 @@ def get_all_tickers():
         "WKL.AS", "ZAL.DE", "ZURN.SW"
     ]
     
-    # Deutsche Aktien (DAX + MDAX + SDAX)
     GERMAN = [
         "ADS.DE", "AIR.DE", "ALV.DE", "BAS.DE", "BAYN.DE", "BMW.DE", "BNR.DE",
         "CBK.DE", "CON.DE", "DTE.DE", "DBK.DE", "DB1.DE", "DPW.DE", "DRW3.DE",
@@ -243,17 +233,16 @@ def get_all_tickers():
         "AIXA.DE", "AT1.DE", "BOSS.DE", "EVT.DE", "FRA.DE", "G24.DE", "HLE.DE",
         "KGX.DE", "LEG.DE", "LHA.DE", "LXS.DE", "NDA.DE", "OSR.DE", "RAA.DE",
         "SHA.DE", "SY1.DE", "TEG.DE", "UTDI.DE", "WAF.DE", "AFX.DE", "ARL.DE",
-        "BC8.DE", "CE2.DE", "DEQ.DE", "DMP.DE", "DRW3.DE", "DUE.DE", "DWS.DE",
-        "ELG.DE", "FNTN.DE", "FPE3.DE", "G1A.DE", "GBF.DE", "GLJ.DE", "HABA.DE",
-        "HOT.DE", "HRPK.DE", "ION.DE", "JEN.DE", "JUN3.DE", "KCO.DE", "KRN.DE",
-        "KSB.DE", "KWS.DE", "LPK.DE", "MAN.DE", "MLP.DE", "MOR.DE", "MTX.DE",
-        "MUX.DE", "NDX1.DE", "NEM.DE", "NOEJ.DE", "NTG.DE", "O2D.DE", "PFV.DE",
-        "PSM.DE", "PUM.DE", "RHM.DE", "SAX.DE", "SDF.DE", "SFQ.DE", "SGL.DE",
-        "SIX2.DE", "SKB.DE", "SMHN.DE", "SPR.DE", "SQZ.DE", "STO3.DE", "SZG.DE",
-        "TLX.DE", "TTK.DE", "VOS.DE", "WAC.DE", "WCH.DE", "WSU.DE", "ZIL2.DE"
+        "BC8.DE", "CE2.DE", "DEQ.DE", "DMP.DE", "DUE.DE", "DWS.DE", "ELG.DE",
+        "FNTN.DE", "FPE3.DE", "G1A.DE", "GBF.DE", "GLJ.DE", "HABA.DE", "HOT.DE",
+        "HRPK.DE", "ION.DE", "JEN.DE", "JUN3.DE", "KCO.DE", "KRN.DE", "KSB.DE",
+        "KWS.DE", "LPK.DE", "MAN.DE", "MLP.DE", "MOR.DE", "MUX.DE", "NDX1.DE",
+        "NEM.DE", "NOEJ.DE", "NTG.DE", "O2D.DE", "PFV.DE", "PSM.DE", "RHM.DE",
+        "SAX.DE", "SDF.DE", "SFQ.DE", "SGL.DE", "SIX2.DE", "SKB.DE", "SMHN.DE",
+        "SPR.DE", "SQZ.DE", "STO3.DE", "SZG.DE", "TLX.DE", "TTK.DE", "VOS.DE",
+        "WAC.DE", "WCH.DE", "WSU.DE", "ZIL2.DE"
     ]
     
-    # Alle zusammenführen
     all_tickers = []
     all_tickers.extend(SP500)
     all_tickers.extend([t for t in NASDAQ100 if t not in all_tickers])
@@ -273,7 +262,6 @@ def calculate_indicators(df):
     try:
         df['SMA_20'] = ta.trend.sma_indicator(df['Close'], window=20)
         df['SMA_50'] = ta.trend.sma_indicator(df['Close'], window=50)
-        df['SMA_200'] = ta.trend.sma_indicator(df['Close'], window=200)
         df['ADX'] = ta.trend.adx(df['High'], df['Low'], df['Close'], window=14)
         df['ATR'] = ta.volatility.average_true_range(df['High'], df['Low'], df['Close'], window=14)
         df['RSI'] = ta.momentum.rsi(df['Close'], window=14)
@@ -294,7 +282,6 @@ def calculate_swing_score(df):
         prev = df.iloc[-2] if len(df) > 1 else latest
         score = 0
         
-        # Trend (30 Pkt)
         if pd.notna(latest.get('SMA_20')) and pd.notna(latest.get('SMA_50')):
             if latest['SMA_20'] > latest['SMA_50']:
                 score += 15
@@ -304,7 +291,6 @@ def calculate_swing_score(df):
                 if 0 < distance < 3:
                     score += 5
         
-        # ADX (25 Pkt)
         if pd.notna(latest.get('ADX')):
             adx = latest['ADX']
             if adx > 50: score += 25
@@ -315,7 +301,6 @@ def calculate_swing_score(df):
             elif adx > 20: score += 5
             else: score += 1
         
-        # RSI (20 Pkt)
         if pd.notna(latest.get('RSI')):
             rsi = latest['RSI']
             rsi_prev = prev.get('RSI') if pd.notna(prev.get('RSI')) else rsi
@@ -327,7 +312,6 @@ def calculate_swing_score(df):
             else: score += 2
             if rsi > rsi_prev: score += 2
         
-        # Volumen (15 Pkt)
         if pd.notna(latest.get('Volume_Ratio')):
             vr = latest['Volume_Ratio']
             if 1.3 <= vr <= 2.5: score += 15
@@ -336,7 +320,6 @@ def calculate_swing_score(df):
             elif vr > 0.7: score += 4
             else: score += 1
         
-        # MACD (10 Pkt)
         if pd.notna(latest.get('MACD')) and pd.notna(latest.get('MACD_signal')):
             if latest['MACD'] > latest['MACD_signal'] and latest['MACD'] > 0:
                 score += 7
@@ -362,4 +345,51 @@ def get_tradingview_link(ticker):
     elif '.PA' in ticker_upper:
         exchange, clean = "EURONEXT", ticker_upper.replace('.PA', '')
     elif '.MI' in ticker_upper:
-        exchange, clean = "MIL", ticker_upper
+        exchange, clean = "MIL", ticker_upper.replace('.MI', '')
+    elif '.SW' in ticker_upper:
+        exchange, clean = "SWX", ticker_upper.replace('.SW', '')
+    elif '.MC' in ticker_upper:
+        exchange, clean = "BME", ticker_upper.replace('.MC', '')
+    elif '.AS' in ticker_upper:
+        exchange, clean = "EURONEXT", ticker_upper.replace('.AS', '')
+    elif '.BR' in ticker_upper:
+        exchange, clean = "EURONEXT", ticker_upper.replace('.BR', '')
+    elif '.CO' in ticker_upper:
+        exchange, clean = "OMXCOP", ticker_upper.replace('.CO', '')
+    elif '.ST' in ticker_upper:
+        exchange, clean = "OMXSTO", ticker_upper.replace('.ST', '')
+    elif '.OL' in ticker_upper:
+        exchange, clean = "OSE", ticker_upper.replace('.OL', '')
+    elif '.HE' in ticker_upper:
+        exchange, clean = "OMXHEX", ticker_upper.replace('.HE', '')
+    elif '.LS' in ticker_upper:
+        exchange, clean = "EURONEXT", ticker_upper.replace('.LS', '')
+    else:
+        exchange, clean = "NASDAQ", ticker_upper
+    
+    return f"https://www.tradingview.com/chart/?symbol={exchange}%3A{clean}&interval=D"
+
+def scan_one_ticker(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        df = stock.history(period="3mo", interval="1d")
+        
+        if df.empty or len(df) < 20:
+            return None
+        
+        avg_vol = df['Volume'].tail(20).mean()
+        price = df['Close'].iloc[-1]
+        daily_volume_dollar = avg_vol * price
+        
+        if daily_volume_dollar < 500000:
+            return None
+        
+        df = calculate_indicators(df)
+        if df is None:
+            return None
+        
+        score = calculate_swing_score(df)
+        latest = df.iloc[-1]
+        
+        try:
+           
