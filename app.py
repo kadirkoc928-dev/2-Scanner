@@ -41,14 +41,6 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #00cc6a;
     }
-    .chart-link {
-        color: #00aaff;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    .chart-link:hover {
-        text-decoration: underline;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,7 +67,7 @@ else:
         )
     else:
         scanner_type = "🌍 Alle Märkte"
-        st.sidebar.info("🌍 Scannt S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600")
+        st.sidebar.info("🌍 S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600")
     
     if scanner_type == "💾 Watchlist Scan":
         if 'user_watchlist' not in st.session_state or len(st.session_state.user_watchlist) == 0:
@@ -139,7 +131,7 @@ else:
     
     max_price = 10000.0
     
-    # Watchlist in Sidebar
+    # Watchlist
     st.sidebar.markdown("---")
     st.sidebar.subheader("💾 Watchlist")
     if 'user_watchlist' not in st.session_state:
@@ -149,19 +141,14 @@ else:
     if st.sidebar.button("➕ Hinzufügen"):
         if new_ticker and new_ticker not in st.session_state.user_watchlist:
             st.session_state.user_watchlist.append(new_ticker)
-            st.sidebar.success(f"✅ {new_ticker} hinzugefügt!")
+            st.sidebar.success(f"✅ {new_ticker}")
     
     if st.session_state.user_watchlist:
-        st.sidebar.markdown(f"**{len(st.session_state.user_watchlist)} Ticker:**")
-        for t in st.session_state.user_watchlist[-5:]:
-            st.sidebar.markdown(f"• {t}")
-        if len(st.session_state.user_watchlist) > 5:
-            st.sidebar.caption(f"...+{len(st.session_state.user_watchlist)-5} mehr")
+        st.sidebar.markdown(f"**{len(st.session_state.user_watchlist)} Ticker**")
         if st.sidebar.button("🗑️ Leeren"):
             st.session_state.user_watchlist = []
             st.rerun()
     
-    # Cache Button
     st.sidebar.markdown("---")
     if st.sidebar.button("🗑️ Cache leeren"):
         st.cache_data.clear()
@@ -170,8 +157,8 @@ else:
         st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.caption("⚠️ Keine Finanzberatung. Nur zu Bildungszwecken.")
-st.sidebar.caption("📊 Daten: Yahoo Finance (verzögert)")
+st.sidebar.caption("⚠️ Keine Finanzberatung.")
+st.sidebar.caption("📊 Yahoo Finance (verzögert)")
 
 # ----------------------------------
 # FALLBACK-TICKER
@@ -195,23 +182,19 @@ FALLBACK_TICKERS = [
 
 @st.cache_data(ttl=3600)
 def get_all_tickers_worldwide():
-    """
-    Holt ALLE Ticker: S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600
-    """
+    """Holt ALLE Ticker: S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600"""
     all_tickers = []
     
     try:
-        # 1. S&P 500
         sp500 = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")[0]
         sp500_tickers = sp500["Symbol"].tolist()
         sp500_tickers = [t.replace('.', '-') for t in sp500_tickers]
         all_tickers.extend(sp500_tickers)
-        st.info(f"✅ S&P 500: {len(sp500_tickers)} Ticker geladen")
+        st.info(f"✅ S&P 500: {len(sp500_tickers)} Ticker")
     except Exception as e:
-        st.warning(f"⚠️ S&P 500 nicht geladen: {e}")
+        st.warning(f"⚠️ S&P 500: {e}")
     
     try:
-        # 2. NASDAQ 100
         nasdaq_tables = pd.read_html("https://en.wikipedia.org/wiki/Nasdaq-100")
         nasdaq = None
         for t in nasdaq_tables:
@@ -222,23 +205,21 @@ def get_all_tickers_worldwide():
             nasdaq_tickers = nasdaq.iloc[:, 0].tolist()
             nasdaq_tickers = [str(t).replace('.', '-') for t in nasdaq_tickers if str(t).strip()]
             all_tickers.extend(nasdaq_tickers)
-            st.info(f"✅ NASDAQ 100: {len(nasdaq_tickers)} Ticker geladen")
+            st.info(f"✅ NASDAQ 100: {len(nasdaq_tickers)} Ticker")
     except Exception as e:
-        st.warning(f"⚠️ NASDAQ 100 nicht geladen: {e}")
+        st.warning(f"⚠️ NASDAQ 100: {e}")
     
     try:
-        # 3. Russell 2000 (iShares ETF Holdings)
         russell_url = "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf/1467271812596.ajax?fileType=csv&fileName=IWM_holdings&dataType=fund"
         russell = pd.read_csv(russell_url, skiprows=9)
         russell_tickers = russell["Ticker"].dropna().tolist()
         russell_tickers = [str(t).strip() for t in russell_tickers if str(t).strip()]
         all_tickers.extend(russell_tickers)
-        st.info(f"✅ Russell 2000: {len(russell_tickers)} Ticker geladen")
+        st.info(f"✅ Russell 2000: {len(russell_tickers)} Ticker")
     except Exception as e:
-        st.warning(f"⚠️ Russell 2000 nicht geladen: {e}")
+        st.warning(f"⚠️ Russell 2000: {e}")
     
     try:
-        # 4. STOXX Europe 600
         stoxx_tables = pd.read_html("https://en.wikipedia.org/wiki/STOXX_Europe_600")
         stoxx = None
         for t in stoxx_tables:
@@ -249,19 +230,17 @@ def get_all_tickers_worldwide():
             stoxx_tickers = stoxx.iloc[:, 0].tolist()
             stoxx_tickers = [str(t).strip() for t in stoxx_tickers if str(t).strip()]
             all_tickers.extend(stoxx_tickers)
-            st.info(f"✅ STOXX Europe 600: {len(stoxx_tickers)} Ticker geladen")
+            st.info(f"✅ STOXX Europe 600: {len(stoxx_tickers)} Ticker")
     except Exception as e:
-        st.warning(f"⚠️ STOXX Europe 600 nicht geladen: {e}")
+        st.warning(f"⚠️ STOXX Europe 600: {e}")
     
-    # Entferne Duplikate und sortiere
-    all_unique = list(dict.fromkeys(all_tickers))  # Behalte Reihenfolge, entferne Duplikate
+    all_unique = list(dict.fromkeys(all_tickers))
     all_unique = [t for t in all_unique if t and str(t) != 'nan']
-    
     return all_unique
 
 @st.cache_data(ttl=1800)
 def get_tickers_safe():
-    """Holt S&P 500 Ticker mit Fallback"""
+    """S&P 500 mit Fallback"""
     try:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
         tables = pd.read_html(url)
@@ -270,7 +249,6 @@ def get_tickers_safe():
         tickers = [t.replace('.', '-') for t in tickers]
         return tickers[:100]
     except:
-        st.warning(f"Nutze Fallback-Liste ({len(FALLBACK_TICKERS)} Ticker)")
         return FALLBACK_TICKERS
 
 def calculate_indicators_safe(df):
@@ -339,9 +317,8 @@ def swing_score_simple(df):
     except:
         return 0
 
-def get_tradingview_link(ticker, exchange="NASDAQ"):
-    """Erzeugt TradingView Chart-Link für 1-Tages-Chart"""
-    # Bestimme Exchange für TradingView
+def get_tradingview_link(ticker):
+    """TradingView Chart-Link"""
     ticker_upper = ticker.upper()
     
     if '.DE' in ticker_upper:
@@ -354,11 +331,11 @@ def get_tradingview_link(ticker, exchange="NASDAQ"):
         exchange = "MIL"
     elif '.SW' in ticker_upper:
         exchange = "SWX"
+    else:
+        exchange = "NASDAQ"
     
-    # TradingView URL für 1-Tages-Chart
-    tv_url = f"https://www.tradingview.com/chart/?symbol={exchange}%3A{ticker_upper.replace('.DE','').replace('.L','').replace('.PA','').replace('.MI','').replace('.SW','')}&interval=D"
-    
-    return tv_url
+    clean_ticker = ticker_upper.replace('.DE','').replace('.L','').replace('.PA','').replace('.MI','').replace('.SW','')
+    return f"https://www.tradingview.com/chart/?symbol={exchange}%3A{clean_ticker}&interval=D"
 
 def scan_one(ticker):
     """Scannt einen Ticker"""
@@ -414,7 +391,6 @@ def scan_one(ticker):
         else:
             macd_status = 'Bullish' if macd_val > macd_sig else 'Bearish'
         
-        # TradingView Link
         tv_link = get_tradingview_link(ticker)
         
         return {
@@ -453,7 +429,7 @@ def run_scan(tickers, max_workers=10):
                 results.append(result)
             
             progress_bar.progress(completed / total)
-            status_text.text(f"🔍 Scanne... {completed}/{total} | ✅ {len(results)} Treffer")
+            status_text.text(f"Scanne... {completed}/{total} | {len(results)} Treffer")
     
     progress_bar.empty()
     status_text.empty()
@@ -465,16 +441,15 @@ def run_scan(tickers, max_workers=10):
 # ----------------------------------
 
 if mode == "📈 Einzelanalyse":
-    st.title(f"📈 {ticker_input} - Technische Analyse")
+    st.title(f"📈 {ticker_input} - Analyse")
     
     try:
-        with st.spinner(f"Lade Daten für {ticker_input}..."):
+        with st.spinner("Lade Daten..."):
             stock = yf.Ticker(ticker_input)
             df = stock.history(period=period, interval="1d")
         
         if df.empty:
-            st.error(f"❌ Keine Daten für **{ticker_input}** gefunden.")
-            st.info("💡 Tipp: Probiere AAPL, MSFT, NVDA oder TSLA zum Testen.")
+            st.error(f"Keine Daten für {ticker_input}")
         else:
             df = calculate_indicators_safe(df)
             
@@ -482,119 +457,62 @@ if mode == "📈 Einzelanalyse":
                 latest = df.iloc[-1]
                 score = swing_score_simple(df)
                 
-                # TradingView Link
                 tv_link = get_tradingview_link(ticker_input)
-                st.markdown(f"[📈 Auf TradingView öffnen (1-Tages-Chart)]({tv_link})")
+                st.markdown(f"[📈 TradingView 1-Tages-Chart öffnen]({tv_link})")
                 
                 col1, col2, col3, col4, col5 = st.columns(5)
-                
                 with col1:
-                    st.metric("🎯 Swing-Score", f"{score}/100")
+                    st.metric("Swing-Score", f"{score}/100")
                 with col2:
                     price = latest['Close']
-                    prev_price = df.iloc[-2]['Close'] if len(df) > 1 else price
-                    change = ((price - prev_price) / prev_price) * 100
-                    st.metric("💵 Preis", f"${price:.2f}", f"{change:.2f}%")
+                    prev = df.iloc[-2]['Close'] if len(df) > 1 else price
+                    st.metric("Preis", f"${price:.2f}", f"{((price-prev)/prev)*100:.2f}%")
                 with col3:
-                    rsi_val = latest.get('RSI')
-                    rsi_display = f"{rsi_val:.1f}" if pd.notna(rsi_val) else "N/A"
-                    st.metric("📊 RSI", rsi_display)
+                    st.metric("RSI", f"{latest.get('RSI', 50):.1f}")
                 with col4:
-                    adx_val = latest.get('ADX')
-                    adx_display = f"{adx_val:.1f}" if pd.notna(adx_val) else "N/A"
-                    st.metric("📈 ADX", adx_display)
+                    st.metric("ADX", f"{latest.get('ADX', 20):.1f}")
                 with col5:
-                    atr_val = latest.get('ATR')
-                    if pd.notna(atr_val) and price > 0:
-                        atr_display = f"{(atr_val/price)*100:.2f}%"
-                    else:
-                        atr_display = "N/A"
-                    st.metric("📉 ATR%", atr_display)
-                
-                st.markdown("---")
+                    atr = latest.get('ATR', 0)
+                    st.metric("ATR%", f"{(atr/price*100):.2f}%")
                 
                 fig = go.Figure()
-                fig.add_trace(go.Candlestick(
-                    x=df.index, open=df['Open'], high=df['High'],
+                fig.add_trace(go.Candlestick(x=df.index, open=df['Open'], high=df['High'],
                     low=df['Low'], close=df['Close'], name="Kurs",
-                    increasing_line_color='#00ff88', decreasing_line_color='#ff4444'
-                ))
+                    increasing_line_color='#00ff88', decreasing_line_color='#ff4444'))
                 if pd.notna(latest.get('SMA_20')):
-                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_20'], name='SMA 20', line=dict(color='blue', width=1.5)))
+                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_20'], name='SMA20', line=dict(color='blue', width=1.5)))
                 if pd.notna(latest.get('SMA_50')):
-                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_50'], name='SMA 50', line=dict(color='orange', width=1.5)))
-                
-                fig.update_layout(height=600, template='plotly_dark', margin=dict(l=0, r=0, t=20, b=0),
-                    xaxis_rangeslider_visible=False, hovermode='x unified')
+                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_50'], name='SMA50', line=dict(color='orange', width=1.5)))
+                fig.update_layout(height=500, template='plotly_dark', margin=dict(l=0,r=0,t=20,b=0),
+                    xaxis_rangeslider_visible=False)
                 st.plotly_chart(fig, use_container_width=True)
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if pd.notna(latest.get('RSI')):
-                        st.subheader("📊 RSI")
-                        fig_rsi = go.Figure()
-                        fig_rsi.add_trace(go.Scatter(x=df.index, y=df['RSI'], name='RSI', line=dict(color='purple', width=2)))
-                        fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", opacity=0.5)
-                        fig_rsi.add_hline(y=30, line_dash="dash", line_color="green", opacity=0.5)
-                        fig_rsi.update_layout(height=300, template='plotly_dark', margin=dict(l=0, r=0, t=20, b=0), showlegend=False)
-                        fig_rsi.update_yaxes(range=[0, 100])
-                        st.plotly_chart(fig_rsi, use_container_width=True)
-                with col2:
-                    if pd.notna(latest.get('MACD')):
-                        st.subheader("📈 MACD")
-                        fig_macd = go.Figure()
-                        fig_macd.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='blue', width=2)))
-                        fig_macd.add_trace(go.Scatter(x=df.index, y=df['MACD_signal'], name='Signal', line=dict(color='red', width=1)))
-                        colors_macd = ['green' if val >= 0 else 'red' for val in df['MACD_hist'].dropna()]
-                        fig_macd.add_trace(go.Bar(x=df.index, y=df['MACD_hist'], name='Histogram', marker_color=colors_macd, opacity=0.5))
-                        fig_macd.update_layout(height=300, template='plotly_dark', margin=dict(l=0, r=0, t=20, b=0), showlegend=False)
-                        st.plotly_chart(fig_macd, use_container_width=True)
-            else:
-                st.warning("⚠️ Nicht genügend Daten.")
     except Exception as e:
-        st.error(f"❌ Fehler: {str(e)}")
+        st.error(f"Fehler: {e}")
 
 else:
-    # =============================================
-    # MARKET SCANNER & ALLE MÄRKTE SCANNER
-    # =============================================
-    
     if mode == "🌍 Alle Märkte Scanner":
         st.title("🌍 Alle Märkte Scanner")
         st.markdown("### S&P 500 + NASDAQ 100 + Russell 2000 + STOXX Europe 600")
-        st.caption("Scannt mehrere tausend Aktien weltweit nach Swing-Trading Setups")
     else:
         st.title("🔎 Market Scanner")
-    
-    with st.expander("💡 Tipps", expanded=False):
-        st.markdown("""
-        - **Quick Scan** = ~30 Sekunden
-        - **Alle Märkte Scanner** = 5-15 Minuten (je nach Internet)
-        - **Moderat (60+)** = Mehr Ergebnisse
-        - **Cache leeren** wenn 0 Ergebnisse
-        - **TradingView Link** in der Chart-Spalte öffnet 1-Tages-Chart
-        """)
-    
-    if mode == "🔎 Market Scanner":
         if scanner_type == "⚡ Quick Scan (Top 100)":
-            st.markdown("### ⚡ Quick Scan - Top 100 Aktien")
+            st.markdown("### ⚡ Quick Scan")
         elif scanner_type == "💾 Watchlist Scan":
-            st.markdown(f"### 💾 Watchlist Scan - {len(st.session_state.get('user_watchlist', []))} Aktien")
+            st.markdown("### 💾 Watchlist Scan")
         else:
             st.markdown("### 📊 Standard Scan")
     
-    scan_clicked = st.button("🚀 SCAN STARTEN", type="primary", use_container_width=True)
+    st.markdown("---")
     
-    if scan_clicked:
+    if st.button("🚀 SCAN STARTEN", type="primary", use_container_width=True):
         
-        # Ticker sammeln
         if mode == "🌍 Alle Märkte Scanner":
-            with st.spinner("🔄 Lade Ticker-Listen von Wikipedia & iShares..."):
+            with st.spinner("Lade Ticker-Listen..."):
                 tickers = get_all_tickers_worldwide()
-                st.markdown(f"**🌍 Insgesamt {len(tickers)} unique Ticker geladen!**")
+                st.markdown(f"**{len(tickers)} unique Ticker geladen**")
         elif scanner_type == "💾 Watchlist Scan":
             if len(st.session_state.get('user_watchlist', [])) == 0:
-                st.error("❌ Watchlist leer!")
+                st.error("Watchlist leer!")
                 st.stop()
             tickers = st.session_state.user_watchlist
         else:
@@ -602,11 +520,10 @@ else:
             if scanner_type == "⚡ Quick Scan (Top 100)":
                 tickers = tickers[:100]
         
-        st.markdown(f"🔍 Scanne {len(tickers)} Aktien...")
+        st.markdown(f"Scanne {len(tickers)} Aktien...")
         
         start_time = time.time()
         
-        # Mehr Worker für große Scans
         if mode == "🌍 Alle Märkte Scanner":
             df_results = run_scan(tickers, max_workers=20)
         else:
@@ -615,8 +532,7 @@ else:
         duration = time.time() - start_time
         
         if df_results.empty:
-            st.error("❌ Keine Ergebnisse!")
-            st.info("👉 Cache leeren (Sidebar) & nochmal versuchen!")
+            st.error("❌ Keine Ergebnisse! Cache leeren & neu versuchen.")
         else:
             df_filtered = df_results.copy()
             df_filtered = df_filtered[df_filtered['Swing-Score'] >= min_swing_score]
@@ -630,8 +546,7 @@ else:
                 df_filtered = df_filtered[df_filtered['MACD'] == 'Bullish']
             df_filtered = df_filtered.sort_values('Swing-Score', ascending=False)
             
-            st.markdown("---")
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("📊 Treffer", len(df_filtered))
             with col2:
@@ -639,54 +554,75 @@ else:
             with col3:
                 best = df_filtered['Swing-Score'].max() if not df_filtered.empty else 0
                 st.metric("🏆 Bester", f"{best}/100")
-            with col4:
-                avg = df_filtered['Swing-Score'].mean() if not df_filtered.empty else 0
-                st.metric("📈 Durchschnitt", f"{avg:.0f}/100")
             
-            st.caption(f"{len(df_results)} Roh-Treffer → {len(df_filtered)} nach Filtern ({duration:.1f}s)")
+            st.caption(f"{len(df_results)} Roh-Treffer -> {len(df_filtered)} nach Filtern")
             
             if not df_filtered.empty:
-                def color_score(val):
-                    if val >= 80: return 'background-color: #00ff8820; color: #00ff88; font-weight: bold'
-                    elif val >= 70: return 'background-color: #88ff0020; color: #88ff00; font-weight: bold'
-                    elif val >= 60: return 'background-color: #ffaa0020; color: #ffaa00; font-weight: bold'
-                    else: return ''
-                
-                def color_macd(val):
-                    if val == 'Bullish': return 'color: #00ff88; font-weight: bold'
-                    elif val == 'Bearish': return 'color: #ff4444'
-                    else: return ''
+                st.markdown("---")
+                st.subheader("📋 Ergebnisse (📈 = TradingView 1-Tages-Chart)")
                 
                 # Tabelle mit Chart-Links
-                styled_df = df_filtered.style.map(color_score, subset=['Swing-Score'])
-                styled_df = styled_df.map(color_macd, subset=['MACD'])
-                styled_df = styled_df.format({
-                    'Preis': '${:.2f}', 'RSI': '{:.1f}', 'ADX': '{:.1f}',
-                    'Vol Ratio': '{:.1f}x', 'ATR%': '{:.2f}%', 'Volumen': '${:,.0f}'
-                })
-                
-                st.markdown("### 📋 Ergebnisse (klick auf 📈 für TradingView 1-Tages-Chart)")
-                
-                # Zeige Tabelle MIT Chart-Links
                 for i, (_, row) in enumerate(df_filtered.iterrows()):
-                    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1, 2, 1, 1, 1, 1, 1, 0.5])
-                    
-                    if i == 0:
-                        col1.markdown("**Score**")
-                        col2.markdown("**Ticker**")
-                        col3.markdown("**Preis**")
-                        col4.markdown("**RSI**")
-                        col5.markdown("**ADX**")
-                        col6.markdown("**Vol Ratio**")
-                        col7.markdown("**MACD**")
-                        col8.markdown("**Chart**")
-                    
                     score = row['Swing-Score']
-                    score_color = "#00ff88" if score >= 80 else "#88ff00" if score >= 70 else "#ffaa00" if score >= 60 else "#ff4444"
+                    if score >= 80:
+                        score_emoji = "🌟"
+                        score_color = "#00ff88"
+                    elif score >= 70:
+                        score_emoji = "✅"
+                        score_color = "#88ff00"
+                    elif score >= 60:
+                        score_emoji = "📊"
+                        score_color = "#ffaa00"
+                    else:
+                        score_emoji = "📉"
+                        score_color = "#ff4444"
                     
-                    col1.markdown(f"<span style='color:{score_color};font-weight:bold'>{score}</span>", unsafe_allow_html=True)
-                    col2.markdown(f"**{row['Ticker']}**")
+                    macd_color = "#00ff88" if row['MACD'] == 'Bullish' else "#ff4444" if row['MACD'] == 'Bearish' else "gray"
+                    
+                    col1, col2, col3, col4, col5, col6, col7 = st.columns([0.8, 1.5, 1, 0.8, 0.8, 0.8, 0.8])
+                    
+                    col1.markdown(f"<span style='color:{score_color};font-weight:bold;font-size:18px'>{score_emoji} {score}</span>", unsafe_allow_html=True)
+                    col2.markdown(f"**{row['Ticker']}**  \n*{row['Name'][:30]}*")
                     col3.markdown(f"${row['Preis']:.2f}")
-                    col4.markdown(f"{row['RSI']:.1f}")
-                    col5.markdown(f"{row['ADX']:.1f}")
-                    col6.markdown(f"{
+                    col4.markdown(f"RSI: {row['RSI']:.1f}")
+                    col5.markdown(f"ADX: {row['ADX']:.1f}")
+                    col6.markdown(f"<span style='color:{macd_color};font-weight:bold'>{row['MACD']}</span>", unsafe_allow_html=True)
+                    col7.markdown(f"[📈 Chart]({row['Chart']})")
+                    
+                    if i < len(df_filtered) - 1:
+                        st.markdown("---")
+                
+                # CSV Download
+                csv = df_filtered.to_csv(index=False)
+                st.download_button(f"📥 {len(df_filtered)} Ergebnisse als CSV", csv,
+                    f"scanner_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", 'text/csv')
+                
+                # Top 5
+                st.markdown("---")
+                st.subheader("🏆 Top 5 Kandidaten")
+                
+                top5 = df_filtered.head(5)
+                for i, (_, row) in enumerate(top5.iterrows()):
+                    with st.expander(f"#{i+1} {row['Ticker']} | Score: {row['Swing-Score']}/100 | ${row['Preis']:.2f}", expanded=(i==0)):
+                        c1, c2, c3 = st.columns(3)
+                        with c1:
+                            st.metric("Score", f"{row['Swing-Score']}/100")
+                            st.metric("Preis", f"${row['Preis']:.2f}")
+                            st.metric("RSI", f"{row['RSI']:.1f}")
+                        with c2:
+                            st.metric("ADX", f"{row['ADX']:.1f}")
+                            st.metric("ATR%", f"{row['ATR%']:.2f}%")
+                            st.metric("Vol Ratio", f"{row['Vol Ratio']:.1f}x")
+                        with c3:
+                            st.metric("SMA20", row['SMA20'])
+                            st.metric("MACD", row['MACD'])
+                            st.markdown(f"[📈 TradingView Chart]({row['Chart']})")
+            else:
+                st.warning("Keine Aktien erfüllen die Filter.")
+                st.markdown("- Preset 'Moderat' wählen\n- Cache leeren\n- Andere Uhrzeit probieren")
+    else:
+        st.info("👆 Wähle Filter und klicke auf SCAN STARTEN!")
+        st.markdown("**Empfohlen:** Moderat (60+) + Quick Scan")
+
+st.markdown("---")
+st.caption(f"⚠️ Keine Finanzberatung | Daten verzögert | {datetime.now().strftime('%d.%m.%Y %H:%M')}")
